@@ -59,7 +59,7 @@ class InvoiceService:
             raise InvoiceNotFound()
 
         raw_items = invoice.get("itens")
-        if raw_items is None:
+        if not raw_items:
             detail = await self._client.get_invoice(invoice["id"]) or {}
             raw_items = detail.get("itens") or []
 

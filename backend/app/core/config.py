@@ -37,8 +37,20 @@ class Settings(BaseSettings):
     token_refresh_enabled: bool = True
     token_refresh_interval_minutes: int = 180
     http_timeout_seconds: float = 15.0
-    # True in production (HTTPS only)
-    cookie_secure: bool = False
+    # Frontend origins allowed by CORS, separated by ";" (e.g. "https://app.com;https://x.com")
+    cors_origins: str = ""
+    # Unset: secure cookies whenever OLIST_REDIRECT_URI is HTTPS (the cookie lives on that host)
+    cookie_secure: bool | None = None
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip().rstrip("/") for o in self.cors_origins.split(";") if o.strip()]
+
+    @property
+    def use_secure_cookies(self) -> bool:
+        if self.cookie_secure is not None:
+            return self.cookie_secure
+        return self.olist_redirect_uri.lower().startswith("https://")
 
 
 @lru_cache

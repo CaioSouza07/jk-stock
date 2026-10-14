@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.api.routes import auth, health
@@ -64,6 +65,13 @@ def create_app(
                     scheduler.shutdown(wait=False)
 
     app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
+    if settings.cors_origin_list:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.cors_origin_list,
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type", "X-App-Password"],
+        )
     register_exception_handlers(app)
     app.include_router(health.router)
     app.include_router(auth.router)

@@ -10,7 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 async def _app_error(request: Request, exc: AppError) -> JSONResponse:
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+    content = {"detail": exc.message}
+    if exc.code:
+        content["code"] = exc.code
+    return JSONResponse(status_code=exc.status_code, content=content)
 
 
 async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:

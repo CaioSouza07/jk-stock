@@ -9,6 +9,8 @@ from http import HTTPStatus
 class AppError(Exception):
     status_code: int = HTTPStatus.BAD_REQUEST
     message: str = "Erro na requisição."
+    # Stable identifier for the frontend to react to specific errors
+    code: str | None = None
 
     def __init__(self, message: str | None = None) -> None:
         if message:

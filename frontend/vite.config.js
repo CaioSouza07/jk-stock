@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => {
       host: mobile,
       // Cloudflare quick tunnel (cloudflared tunnel --url http://localhost:5173)
       allowedHosts: ['.trycloudflare.com'],
-      // Dev only: forwards backend routes so the app never needs CORS.
-      // In production the backend serves the built frontend from the same origin.
+      // Dev only: forwards backend routes so local development needs no CORS.
+      // In production the app calls VITE_API_URL, allowed by the backend's CORS_ORIGINS.
       proxy: {
         '/api': BACKEND_URL,
         '/auth': BACKEND_URL,

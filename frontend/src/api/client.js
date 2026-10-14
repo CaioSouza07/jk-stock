@@ -1,16 +1,20 @@
 const DEFAULT_TIMEOUT_MS = 60_000
 
+// Backend address (VITE_API_URL at build time). Empty in dev: Vite proxies the routes.
+export const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
+
 export class ApiError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code = null) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
   }
 }
 
 /**
  * fetch wrapper for the backend. Throws ApiError with the backend's
- * Portuguese `detail` message; status 0 means network failure or timeout.
+ * Portuguese `detail` message and optional `code`; status 0 means network failure or timeout.
  */
 export async function apiRequest(path, { method = 'GET', password, body, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   const headers = { Accept: 'application/json' }
@@ -19,7 +23,7 @@ export async function apiRequest(path, { method = 'GET', password, body, timeout
 
   let response
   try {
-    response = await fetch(path, {
+    response = await fetch(`${API_URL}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -34,7 +38,11 @@ export async function apiRequest(path, { method = 'GET', password, body, timeout
 
   const data = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new ApiError(response.status, data?.detail ?? `Erro inesperado (${response.status}).`)
+    throw new ApiError(
+      response.status,
+      data?.detail ?? `Erro inesperado (${response.status}).`,
+      data?.code ?? null,
+    )
   }
   return data
 }

@@ -27,6 +27,7 @@ class OlistAuthError(AppError):
 class OlistNotConnected(AppError):
     status_code = HTTPStatus.SERVICE_UNAVAILABLE
     message = "Olist não conectado. Acesse /auth/login para conectar."
+    code = "olist_not_connected"
 
 
 class InvalidOAuthState(AppError):

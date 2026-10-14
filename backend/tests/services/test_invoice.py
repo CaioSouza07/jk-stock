@@ -50,8 +50,9 @@ async def test_not_found(service, fake_olist):
         await service.lookup(KEY)
 
 
-async def test_fetches_detail_when_list_has_no_items(service, fake_olist):
-    add_invoices(fake_olist, invoice_payload(ACCESS_KEY, None, invoice_id=7))
+@pytest.mark.parametrize("list_items", [None, []])
+async def test_fetches_detail_when_list_has_no_items(service, fake_olist, list_items):
+    add_invoices(fake_olist, invoice_payload(ACCESS_KEY, list_items, invoice_id=7))
     fake_olist.add("/notas/7", json=invoice_payload(ACCESS_KEY, [item_payload(1)], invoice_id=7))
     fake_olist.add("/produtos/1", json=product_payload(1))
 

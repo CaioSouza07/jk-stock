@@ -41,6 +41,7 @@ def test_not_connected(client, auth_headers):
     r = client.post(URL, json={"barcode": ACCESS_KEY}, headers=auth_headers)
     assert r.status_code == 503
     assert "não conectado" in r.json()["detail"]
+    assert r.json()["code"] == "olist_not_connected"
 
 
 def test_invoice_not_found(client, auth_headers, fake_olist, connected):

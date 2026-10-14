@@ -4,7 +4,7 @@ import { ManualKeyForm } from '../components/ManualKeyForm'
 import { Card } from '../components/ui/Card'
 import { Spinner } from '../components/ui/Spinner'
 
-// html5-qrcode is most of the bundle: load it only when this page opens
+// The scanner (and the ZXing ponyfill it may load) only loads when this page opens
 const BarcodeScanner = lazy(() =>
   import('../components/BarcodeScanner').then((module) => ({ default: module.BarcodeScanner })),
 )

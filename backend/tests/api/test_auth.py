@@ -135,3 +135,12 @@ def test_callback_error_redirects_back_with_message(client, fake_olist):
     location = urlsplit(r.headers["location"])
     assert "cancelado" in parse_qs(location.query)["olist_error"][0]
     assert fake_olist.requests == []
+
+
+def test_status_when_token_storage_is_down(settings, fake_olist, auth_headers):
+    # Upstash calls go through the fake transport, which does not know this host
+    down = settings.model_copy(update={"upstash_redis_rest_url": "https://redis.invalid"})
+    with TestClient(build_app(down, fake_olist)) as client:
+        r = client.get("/auth/status", headers=auth_headers)
+    assert r.status_code == 503
+    assert "code" not in r.json()

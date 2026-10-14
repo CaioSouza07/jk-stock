@@ -15,7 +15,7 @@ from app.core.handlers import register_exception_handlers
 from app.services.invoice import InvoiceService
 from app.services.olist_auth import OlistAuth
 from app.services.olist_client import OlistClient
-from app.services.token_store import TokenStore
+from app.services.token_store import create_token_store
 
 
 def _start_token_refresh(olist_auth: OlistAuth, settings: Settings) -> AsyncIOScheduler:
@@ -50,7 +50,7 @@ def create_app(
         async with httpx.AsyncClient(
             timeout=settings.http_timeout_seconds, transport=http_transport
         ) as http:
-            olist_auth = OlistAuth(settings, http, TokenStore(settings.tokens_file))
+            olist_auth = OlistAuth(settings, http, create_token_store(settings, http))
             app.state.olist_auth = olist_auth
             app.state.invoice_service = InvoiceService(
                 OlistClient(settings, http, olist_auth), settings.olist_max_concurrency

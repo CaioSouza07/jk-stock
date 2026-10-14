@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     product_cache_ttl_seconds: int = 3600
 
     app_password: SecretStr = SecretStr("")
+    # Upstash Redis (REST API). Empty: tokens go to tokens_file (local development only)
+    upstash_redis_rest_url: str = ""
+    upstash_redis_rest_token: SecretStr = SecretStr("")
+    tokens_redis_key: str = "jkstock:olist_tokens"
     tokens_file: Path = BACKEND_DIR / "tokens.json"
     token_refresh_enabled: bool = True
     token_refresh_interval_minutes: int = 180

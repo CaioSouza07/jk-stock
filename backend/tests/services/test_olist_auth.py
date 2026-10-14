@@ -8,7 +8,7 @@ import pytest
 from app.core.config import Settings
 from app.core.exceptions import MissingConfiguration
 from app.services.olist_auth import OlistAuth, OlistAuthError, OlistNotConnected
-from app.services.token_store import TokenStore
+from app.services.token_store import FileTokenStore
 
 pytestmark = pytest.mark.anyio
 
@@ -29,8 +29,8 @@ def clock() -> Clock:
 
 
 @pytest.fixture
-def store(settings) -> TokenStore:
-    return TokenStore(settings.tokens_file)
+def store(settings) -> FileTokenStore:
+    return FileTokenStore(settings.tokens_file)
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ async def test_missing_credentials(store, fake_olist):
 async def test_exchange_code_saves_tokens(olist_auth, store, fake_olist, settings):
     tokens = await olist_auth.exchange_code("the-code")
     assert tokens.access_token == "access-1"
-    assert store.load() == tokens
+    assert (await store.load()) == tokens
     assert fake_olist.form() == {
         "grant_type": "authorization_code",
         "code": "the-code",
@@ -76,7 +76,7 @@ async def test_exchange_code_rejected(olist_auth, store, fake_olist):
     fake_olist.token_status = 400
     with pytest.raises(OlistAuthError):
         await olist_auth.exchange_code("bad-code")
-    assert store.load() is None
+    assert (await store.load()) is None
 
 
 async def test_connection_error(olist_auth, fake_olist):
@@ -103,7 +103,7 @@ async def test_get_access_token_refreshes_when_expired(olist_auth, store, fake_o
     assert await olist_auth.get_access_token() == "access-2"
     assert fake_olist.form()["grant_type"] == "refresh_token"
     assert fake_olist.form()["refresh_token"] == "refresh-1"
-    assert store.load().refresh_token == "refresh-2"
+    assert (await store.load()).refresh_token == "refresh-2"
 
 
 async def test_concurrent_requests_refresh_once(olist_auth, fake_olist, clock):
@@ -138,11 +138,11 @@ async def test_scheduled_refresh_without_tokens(olist_auth, fake_olist):
 async def test_scheduled_refresh(olist_auth, store):
     await olist_auth.exchange_code("code")
     await olist_auth.refresh_if_connected()
-    assert store.load().access_token == "access-2"
+    assert (await store.load()).access_token == "access-2"
 
 
 async def test_scheduled_refresh_swallows_errors(olist_auth, store, fake_olist):
     await olist_auth.exchange_code("code")
     fake_olist.token_status = 500
     await olist_auth.refresh_if_connected()
-    assert store.load().access_token == "access-1"
+    assert (await store.load()).access_token == "access-1"

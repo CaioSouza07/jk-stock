@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 
 import pytest
@@ -6,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.core.config import Settings, get_settings
 from app.main import create_app
-from app.services.token_store import OAuthTokens, TokenStore
+from app.services.token_store import OAuthTokens
 from tests.fakes import FakeOlist, token_payload
 
 PASSWORD = "test-password"
@@ -62,5 +63,5 @@ def auth_headers() -> dict[str, str]:
 def connected(settings: Settings) -> OAuthTokens:
     """Olist already connected: valid tokens "access-0" / "refresh-0" on disk."""
     tokens = OAuthTokens.from_token_response(token_payload(0), datetime.now(UTC))
-    TokenStore(settings.tokens_file).save(tokens)
+    settings.tokens_file.write_text(json.dumps(tokens.to_dict()), encoding="utf-8")
     return tokens

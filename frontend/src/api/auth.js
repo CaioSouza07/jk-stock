@@ -1,8 +1,11 @@
 import { API_URL, apiRequest } from './client'
 
-/** Also used to validate the app password: throws ApiError 401 when wrong. */
+/**
+ * Also used to validate the app password: throws ApiError 401 when wrong.
+ * Default (long) timeout: a sleeping server can take ~50s to wake up.
+ */
 export function getAuthStatus(password) {
-  return apiRequest('/auth/status', { password, timeoutMs: 15_000 })
+  return apiRequest('/auth/status', { password })
 }
 
 /**

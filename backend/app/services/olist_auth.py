@@ -71,8 +71,8 @@ class OlistAuth:
         }
         return f"{self._settings.olist_auth_url}?{urlencode(params)}"
 
-    def current_tokens(self) -> OAuthTokens | None:
-        return self._store.load()
+    async def current_tokens(self) -> OAuthTokens | None:
+        return await self._store.load()
 
     def is_connected(self, tokens: OAuthTokens | None) -> bool:
         return tokens is not None and not tokens.refresh_expired(self._now())
@@ -86,13 +86,13 @@ class OlistAuth:
             }
         )
         async with self._lock:
-            self._store.save(tokens)
+            await self._store.save(tokens)
         logger.info("Olist connected; access token valid until %s", tokens.access_expires_at)
         return tokens
 
     async def get_access_token(self) -> str:
         """Valid access token, refreshing it if needed. Raises OlistNotConnected."""
-        tokens = self._store.load()
+        tokens = await self._store.load()
         if tokens is None:
             raise OlistNotConnected()
         if not tokens.access_expired(self._now()):
@@ -100,7 +100,7 @@ class OlistAuth:
 
         async with self._lock:
             # Another request may have refreshed while we waited for the lock
-            tokens = self._store.load()
+            tokens = await self._store.load()
             if tokens is None:
                 raise OlistNotConnected()
             if tokens.access_expired(self._now()):
@@ -110,7 +110,7 @@ class OlistAuth:
     async def refresh_access_token(self, rejected_token: str) -> str:
         """Called after Olist answers 401: refresh unless another request already did."""
         async with self._lock:
-            tokens = self._store.load()
+            tokens = await self._store.load()
             if tokens is None:
                 raise OlistNotConnected()
             if tokens.access_token == rejected_token:
@@ -121,7 +121,7 @@ class OlistAuth:
         """Scheduled job: keeps the refresh token alive. Never raises."""
         try:
             async with self._lock:
-                tokens = self._store.load()
+                tokens = await self._store.load()
                 if tokens is None:
                     logger.info("Skipping token refresh: Olist not connected")
                     return
@@ -139,7 +139,7 @@ class OlistAuth:
             {"grant_type": "refresh_token", "refresh_token": tokens.refresh_token},
             is_refresh=True,
         )
-        self._store.save(new_tokens)
+        await self._store.save(new_tokens)
         logger.info("Olist token refreshed; valid until %s", new_tokens.access_expires_at)
         return new_tokens
 

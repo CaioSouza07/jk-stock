@@ -137,10 +137,13 @@ async def callback(
     response_model=AuthStatusResponse,
     summary="Olist connection status",
     dependencies=[Depends(verify_app_password)],
-    responses={401: {"model": ErrorResponse, "description": "Invalid or missing app password"}},
+    responses={
+        401: {"model": ErrorResponse, "description": "Invalid or missing app password"},
+        503: {"model": ErrorResponse, "description": "Token storage unavailable"},
+    },
 )
-def auth_status(olist_auth: OlistAuthDep) -> AuthStatusResponse:
-    tokens = olist_auth.current_tokens()
+async def auth_status(olist_auth: OlistAuthDep) -> AuthStatusResponse:
+    tokens = await olist_auth.current_tokens()
     if tokens is None:
         return AuthStatusResponse(connected=False)
     return AuthStatusResponse(

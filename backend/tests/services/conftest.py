@@ -3,7 +3,7 @@ import pytest
 
 from app.services.olist_auth import OlistAuth
 from app.services.olist_client import OlistClient
-from app.services.token_store import TokenStore
+from app.services.token_store import FileTokenStore
 
 
 class FakeMonotonic:
@@ -30,5 +30,5 @@ async def olist_client(settings, fake_olist, connected, sleeps, monotonic):
         sleeps.append(seconds)
 
     async with httpx.AsyncClient(transport=fake_olist.transport) as http:
-        auth = OlistAuth(settings, http, TokenStore(settings.tokens_file))
+        auth = OlistAuth(settings, http, FileTokenStore(settings.tokens_file))
         yield OlistClient(settings, http, auth, sleep=fake_sleep, clock=monotonic)
